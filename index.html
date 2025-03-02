@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Women Safety</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Glassmorphism Effect */
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    /* Neon Glow */
+    .neon-border {
+      border: 2px solid rgba(255, 0, 102, 0.7);
+      box-shadow: 0 0 10px rgba(255, 0, 102, 0.7);
+    }
+    /* Smooth fade-in animation */
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-black via-gray-900 to-black text-white min-h-screen flex flex-col items-center justify-between">
+
+  <!-- Header with connection status on the right -->
+  <header class="w-full py-6 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 shadow-lg px-4">
+  <div class="flex justify-between items-center">
+    <!-- Left empty column -->
+    <div class="w-1/3"></div>
+    <!-- Center column with centered text -->
+    <div class="w-1/3 text-center text-3xl font-bold">
+      🚨 Women Safety 🚨
+    </div>
+    <!-- Right column with connection status -->
+    <div class="w-1/3 flex justify-end">
+      <span id="connectionStatus" class="px-3 py-1 bg-white bg-opacity-20 rounded shadow text-red-500"><strong>
+        Disconnected</strong>
+      </span>
+    </div>
+  </div>
+</header>
+
+
+  <!-- Table Section -->
+  <div class="w-full max-w-4xl mt-0 p-6 glass">
+    <table id="alertTable" class="w-full border-collapse">
+      <thead>
+        <tr class="text-left text-pink-400 text-lg">
+          <th class="p-3">📅 Date</th>
+          <th class="p-3">⏱ Time</th>
+          <th class="p-3">🏙 City</th>
+          <th class="p-3">📍 Latitude</th>
+          <th class="p-3">📍 Longitude</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody" class="text-white">
+        <!-- New rows will be added dynamically -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Acknowledge Button -->
+  <button id="ackButton" class="mt-6 px-6 py-3 bg-pink-500 text-white font-semibold rounded-lg shadow-lg hover:bg-pink-600 transition transform hover:scale-105">
+    ✅ Acknowledge Alert
+  </button>
+
+  <!-- Footer -->
+  <footer class="w-full py-4 text-center text-gray-300 text-sm bg-gray-800 mt-8">
+    ⚠ Stay Safe. Stay Alert. ⚠
+  </footer>
+
+  <!-- Include MQTT.js -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script>
+    // MQTT Config
+    const MQTT_BROKER = "ws://test.mosquitto.org:8081";
+    const MQTT_TOPIC = "alert/women_safety";
+    const clientId = "web_" + Math.random().toString(16).substr(2, 8);
+    
+    // Connect to MQTT broker
+    const client = mqtt.connect(MQTT_BROKER, { clientId });
+
+    client.on('connect', () => {
+      console.log("Connected to MQTT");
+      client.subscribe(MQTT_TOPIC);
+    });
+
+    client.on('message', (topic, message) => {
+      const msg = message.toString();
+      let city = "N/A", latitude = "N/A", longitude = "N/A";
+      
+      try {
+        const data = JSON.parse(msg);
+        city = data.city || "N/A";
+        latitude = data.latitude || "N/A";
+        longitude = data.longitude || "N/A";
+      } catch (error) {
+        city = msg; // Use raw message if parsing fails
+      }
+      
+      // Update connection status if ESP8266 sends connected message
+      if (city === "ESP8266 connected") {
+        const statusElem = document.getElementById("connectionStatus");
+        statusElem.innerText = "Connected";
+        statusElem.classList.remove("text-red-500");
+        statusElem.classList.add("text-green-500");
+      } else {
+        addRow(city, latitude, longitude);
+      }
+    });
+
+    // Function to add a row to the table with split Date and Time
+    function addRow(city, latitude, longitude) {
+      const now = new Date();
+      const date = now.toLocaleDateString();
+      const time = now.toLocaleTimeString();
+      const tableBody = document.getElementById("tableBody");
+      const row = document.createElement("tr");
+      row.classList.add("fade-in", "text-white");
+
+      row.innerHTML = `
+        <td class="p-3 border neon-border">${date}</td>
+        <td class="p-3 border neon-border">${time}</td>
+        <td class="p-3 border neon-border">${city}</td>
+        <td class="p-3 border neon-border">${latitude}</td>
+        <td class="p-3 border neon-border">${longitude}</td>
+      `;
+
+      tableBody.appendChild(row);
+    }
+
+    // Acknowledge button
+    document.getElementById("ackButton").addEventListener("click", () => {
+      if (client.connected) {
+        client.publish(MQTT_TOPIC, "OFF");
+        alert("Alert Acknowledged ✅");
+      }
+    });
+  </script>
+
+</body>
+</html>
