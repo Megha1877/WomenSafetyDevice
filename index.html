@@ -34,22 +34,21 @@
 
   <!-- Header with connection status on the right -->
   <header class="w-full py-6 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 shadow-lg px-4">
-  <div class="flex justify-between items-center">
-    <!-- Left empty column -->
-    <div class="w-1/3"></div>
-    <!-- Center column with centered text -->
-    <div class="w-1/3 text-center text-3xl font-bold">
-      🚨 Women Safety 🚨
+    <div class="flex justify-between items-center">
+      <!-- Left empty column -->
+      <div class="w-1/3"></div>
+      <!-- Center column with centered text -->
+      <div class="w-1/3 text-center text-3xl font-bold">
+        🚨 Women Safety 🚨
+      </div>
+      <!-- Right column with connection status -->
+      <div class="w-1/3 flex justify-end">
+        <span id="connectionStatus" class="px-3 py-1 bg-white bg-opacity-20 rounded shadow text-red-500"><strong>
+          Disconnected</strong>
+        </span>
+      </div>
     </div>
-    <!-- Right column with connection status -->
-    <div class="w-1/3 flex justify-end">
-      <span id="connectionStatus" class="px-3 py-1 bg-white bg-opacity-20 rounded shadow text-red-500"><strong>
-        Disconnected</strong>
-      </span>
-    </div>
-  </div>
-</header>
-
+  </header>
 
   <!-- Table Section -->
   <div class="w-full max-w-4xl mt-0 p-6 glass">
@@ -82,8 +81,8 @@
   <!-- Include MQTT.js -->
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script>
-    // MQTT Config
-    const MQTT_BROKER = "ws://test.mosquitto.org:8081";
+    // MQTT Config: Use secure WebSocket for HTTPS pages
+    const MQTT_BROKER = "wss://test.mosquitto.org:8081";
     const MQTT_TOPIC = "alert/women_safety";
     const clientId = "web_" + Math.random().toString(16).substr(2, 8);
     
